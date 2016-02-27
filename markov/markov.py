@@ -13,6 +13,17 @@ class MarkovChain:
 		self.channel = channel
 		self.wordbase = {}
 		self.stopSigns = [".", "!" , "?"]
+
+	def __saveToFile(self, path):
+		saveFile = open(path, 'w')
+		output = ""
+		for key in self.wordbase:
+			output += key + ":" + " ".join(word for word in self.wordbase[key]) +"\n"
+		saveFile.write(output)	
+		saveFile.close()
+	def __readFromFile(self, path):
+		dostuff = 2
+
 	def start(self):
 		try:
 			while 1:
@@ -39,6 +50,10 @@ class MarkovChain:
 					continue
 				elif input.startswith("!stop"):
 					return "Stopping"
+				elif input.startswith("!markovsave"):
+					print ("saving to file")
+					self.__saveToFile("savedData/markov/" + self.channel + ".data")
+					continue
 				#print (input)
 				data = input.split()
 				stringEnd = len(data)
