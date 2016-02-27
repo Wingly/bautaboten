@@ -25,7 +25,7 @@ def checkforPing(p_checkforSec):
 
 
 irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print ("going to see arrow " + botConf.server)
+print ("Connecting to " + botConf.server)
 irc.connect((botConf.server, 6667))
 #checkforPing(1)
 #print "sending pass"
@@ -148,6 +148,9 @@ while 1:
 				sentence = channel_conn.recv()
 				retMsg = handler.composePrivMsg(target, sentence)
 				irc.send(retMsg)
+				continue
+			elif message.startswith("!markovsave") and sender in superAdmin:
+				channel_conn.send(message)
 				continue
 			if allowCommands:
 				try:
