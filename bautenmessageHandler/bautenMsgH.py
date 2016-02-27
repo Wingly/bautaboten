@@ -28,6 +28,7 @@ class KnowledgeHolder:
 		for line in loadFile:
 			data = line.split(':', 1)
 			self.knowledgeContainer[data[0]] = data[1]
+		loadFile.close()
 	def learnKnowledge(self, key, knowledge):
 		if len(knowledge) > 100:
 			return "I can't remember that much  : ("
