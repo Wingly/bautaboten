@@ -1,2 +1,3 @@
 # bautaboten
-An irc bot
+An irc bot written in python
+Only nonstandard import currently used is lxml
