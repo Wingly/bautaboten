@@ -144,10 +144,14 @@ while 1:
 				irc.send(bytes("QUIT :Bye bye", 'utf-8'))
 				sys.exit()			
 			elif message.startswith("!speak"):
-				channel_conn.send(message)
-				sentence = channel_conn.recv()
-				retMsg = handler.composePrivMsg(target, sentence)
-				irc.send(retMsg)
+				if allowCommands:
+					channel_conn.send(message)
+					sentence = channel_conn.recv()
+					if sentence.startswith("!error"):
+						allowCommands = False
+					retMsg = handler.composePrivMsg(target, sentence)
+
+					irc.send(retMsg)
 				continue
 			elif message.startswith("!markovsave") and sender in botConf.superAdmin:
 				channel_conn.send(message)
