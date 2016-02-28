@@ -48,9 +48,14 @@ class MarkovChain:
 				input = self.pipeEnd.recv()
 				if input.startswith("!speak"):
 					outputString =""
-					randomWord = random.sample(self.wordbase.keys(), 1)[0]
+					randomWord = ""
+					if len(input.split()) > 1:
+						randomWord = input.split()[1]
+					else:
+						randomWord = random.sample(self.wordbase.keys(), 1)[0]
+
 					outputString += str(randomWord) + " "
-					while 1:
+					while randomWord in self.wordbase:
 						randomWord = random.sample(self.wordbase[randomWord], 1)[0]
 						if randomWord != "":
 							#print (randomWord)
