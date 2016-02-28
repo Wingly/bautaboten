@@ -41,7 +41,6 @@ checkforPing(4)
 print ("joining channel")
 irc.send(bytes("JOIN " + botConf.channel + botConf.stopsign, 'utf-8'))
 
-superAdmin = ["Wingman" , "wingly"]
 admin =[]
 allowCommands = True
 quizMode = False
@@ -76,7 +75,7 @@ while 1:
 		if msgType == "PRIVMSG" and sender != botConf.nick:
 			if not message.startswith("!"):
 				channel_conn.send(message)
-			if (sender in superAdmin or (sender in admin and not allowCommands)) and message == "!reload":
+			if (sender in botConf.superAdmin or (sender in admin and not allowCommands)) and message == "!reload":
 				irc.send(bytes("PRIVMSG" +" " + target + " :Attempting reload." + botConf.stopsign, 'utf-8'))
 				try:
 					quizMode = False
@@ -109,17 +108,17 @@ while 1:
 					allowCommands = False #Not using handler here since im not sure it's not broken after the reload attempt
 					irc.send(bytes("PRIVMSG" +" " + "#teamkazzak" + " :Error reloading." + botConf.stopsign, 'utf-8'))	
 				continue
-			elif (sender in superAdmin or sender in admin) and message.lower() == "!quiz":
+			elif (sender in botConf.superAdmin or sender in admin) and message.lower() == "!quiz":
 				if quizMode == False:
 					quizMode = True
 					quizModule = quizHandler.QuizModule(target,irc)
 				continue
-			elif (sender in superAdmin  or sender in admin) and message == "!abort":
+			elif (sender in botConf.superAdmin  or sender in admin) and message == "!abort":
 				if quizMode == True:
 					quizMode = False
 					quizModule = None
 				continue
-			elif sender in superAdmin and message.startswith("!addAdmin"):
+			elif sender in botConf.superAdmin and message.startswith("!addAdmin"):
 				splitted = message.split()
 				if len(splitted) > 1:
 					names = handler.getNames(target)
@@ -129,7 +128,7 @@ while 1:
 					adminlist = ''.join(str(x) for x in admin)+ " "
 					print ("current admins: " + adminlist)
 				continue
-			elif sender in superAdmin and message.startswith("!delAdmin"):
+			elif sender in botConf.superAdmin and message.startswith("!delAdmin"):
 				splitted = message.split()
 				if len(splitted) > 1:
 					names = handler.getNames(target)
@@ -139,8 +138,9 @@ while 1:
 					adminlist = ''.join(str(x) for x in admin)  + " "
 					print ("current admins: " + adminlist)
 				continue
-			elif sender in superAdmin and message.startswith("!quit"):
-				irc.send(bytes("PRIVMSG" +" " + target + ": Okay, goodbye :(" + botConf.stopsign, 'utf-8'))
+			elif sender in botConf.superAdmin and message.startswith("!quit"):
+				print ("attempting to quit")
+				irc.send(bytes("PRIVMSG" +" " + target + " : Okay, goodbye :(" + botConf.stopsign, 'utf-8'))
 				irc.send(bytes("QUIT :Bye bye", 'utf-8'))
 				sys.exit()			
 			elif message.startswith("!speak"):
@@ -149,7 +149,7 @@ while 1:
 				retMsg = handler.composePrivMsg(target, sentence)
 				irc.send(retMsg)
 				continue
-			elif message.startswith("!markovsave") and sender in superAdmin:
+			elif message.startswith("!markovsave") and sender in botConf.superAdmin:
 				channel_conn.send(message)
 				continue
 			if allowCommands:
