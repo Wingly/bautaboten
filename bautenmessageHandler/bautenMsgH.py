@@ -99,7 +99,7 @@ class RPSGame:
 		if winCode == 1:
 			return self.player2.name +" Won over "+ self.player1.name +"! With " + self.player2.choice +" vs "+ self.player1.choice 
 		else:
-			return "And it's a tie between "+ self.player1.name +" and " + self.player2.name +"! Both choose " + self.player1.choice
+			return "And it's a tie between "+ self.player1.name +" and " + self.player2.name +"! Both chose " + self.player1.choice
 	def checkStatus(self):
 		done = 0
 		if self.player1.choice != "" and self.player2.choice != "":
