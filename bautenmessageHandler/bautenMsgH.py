@@ -4,6 +4,7 @@ import urllib.request
 from urllib.error import URLError, HTTPError
 from urllib.parse import quote, urlparse
 import bautenmessageHandler.bautenConf as botConf
+import reminder.reminder as reminderModule
 from random import randint
 import json
 import re
@@ -154,6 +155,7 @@ class MsgHandler:
 		self.botrpsCD = 60
 		self.lastBotMatch = 0
 		self.knowledgeHolder = KnowledgeHolder()
+		self.reminders = []
 	def getNames(self, channel):
 			removeOperator = re.compile(r'[@\+%]')
 			self.socket.send(bytes("NAMES " + channel + botConf.stopsign, 'utf-8'))
@@ -362,6 +364,19 @@ class MsgHandler:
 				response = self.knowledgeHolder.getKnowledge(data[1])
 				retMsg = self.composePrivMsg(channel, sender + ": " + response)
 				self.socket.send(retMsg)	
+			elif message.startswith("!remindme"):
+				try:
+					rm = reminderModule.Reminder(sender, message)
+					self.reminders.append(rm)
+
+					retMsg = self.composePrivMsg(channel, "Okay will do! ")
+					self.socket.send(retMsg)
+					return
+				except Exception as e:
+					retMsg = self.composePrivMsg(channel, "Bad formatting " + str(e))
+					self.socket.send(retMsg)
+					return
+
 			elif len(message) > 1:
 				retMsg = self.composePrivMsg(channel, "I don't know that command : (")
 				self.socket.send(retMsg)
