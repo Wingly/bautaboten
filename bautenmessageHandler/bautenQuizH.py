@@ -98,20 +98,28 @@ class QuizModule:
 				self.nextActionTime = time.time() + 5.0
 				self.lastTimePrompt = 0
 			elif self.currentQuestionNum != 0 and not self.currentQuestion.answerDisplayed:
-				self.__displayAnswer()
-				for player in self.scoreboard:
-					self.scoreboard[player].hasGuessed = False
+				try:
+					self.__displayAnswer()
+					for player in self.scoreboard:
+						self.scoreboard[player].hasGuessed = False
+				except Exception as e:
+					#print (str(e))
+					self.socket.send(self.composePrivMsg(self.channel, "Something went wrong when trying to display aa answer, someone should probably use !abort now"))
 				self.nextActionTime = currTime + 20.0
 				self.lastTimePrompt = 0
 				self.currentQuestion.answerDisplayed = True
 				self.socket.send(self.composePrivMsg(self.channel, str(self.nextActionTime - currTime) +"s until next question"))
 			elif self.currentQuestionNum != self.TotalNumberOfQuestions:
-				print ("Question "+ str(self.currentQuestionNum) )
-				self.currentQuestion = self.Question(self.__getRandomQuestion())
-				self.__dislayCurrentQuestion()
-				self.currentQuestionNum += 1
-				self.nextActionTime = time.time() + self.answerTime
-				self.lastTimePrompt = 0
+				try:
+					print ("Question "+ str(self.currentQuestionNum) )
+					self.currentQuestion = self.Question(self.__getRandomQuestion())
+					self.__dislayCurrentQuestion()
+					self.currentQuestionNum += 1
+					self.nextActionTime = time.time() + self.answerTime
+					self.lastTimePrompt = 0
+				except Exception as e:
+					#print (str(e))
+					self.socket.send(self.composePrivMsg(self.channel, "Something went wrong when trying to display a question, someone should probably use !abort now"))
 
 		elif int(self.nextActionTime - currTime) % 20 == 0 and int(self.nextActionTime - currTime) != self.lastTimePrompt:
 			self.lastTimePrompt = int(self.nextActionTime - currTime)
