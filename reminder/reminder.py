@@ -14,8 +14,6 @@ class Reminder:
 
 	def checkReminder(self):
 		now = datetime.now()
-		print ("now " + str(now))
-		print ("remind " +str(self.remindDate))
 		if self.remindDate < now:
 			self.hasReminded = True
 			return self.remindString
