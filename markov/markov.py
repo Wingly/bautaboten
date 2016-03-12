@@ -1,6 +1,7 @@
 import random
 import time
 import os
+import codecs
 def start(pipeEnd, channel):
 	
 	markovChain = MarkovChain(pipeEnd, channel)
@@ -15,9 +16,10 @@ class MarkovChain:
 		self.wordbase = {}
 		self.stopSigns = [".", "!" , "?"]
 		self.__readFromFile("savedData/markov/" + channel + ".data")
+		self.nextSave = time.time() + 18000
 
 	def __saveToFile(self, path):
-		saveFile = open(path, 'w')
+		saveFile = open(path, 'w', encoding='utf-8')
 		output = ""
 		for key in self.wordbase:
 			output += key + ":" + " ".join(word for word in self.wordbase[key]) +"\n"
@@ -28,10 +30,10 @@ class MarkovChain:
 			print ("no previous markov savefile for " + self.channel)
 			return
 		print ("Reading from " + path)
-		loadFile = open(path)
+		loadFile = open(path , 'r', encoding='utf-8')
 		for line in loadFile:
 			data = line.split(':', 1)
-			print ("adding subwords for " + data[0])
+			#print ("adding subwords for " + data[0])
 			self.wordbase[data[0]] = []
 			for word in data[1].split():		
 				self.wordbase[data[0]].append(word)
@@ -42,6 +44,9 @@ class MarkovChain:
 	def start(self):
 		try:
 			while 1:
+				if time.time() > self.nextSave:
+					self.__saveToFile("savedData/markov/" + self.channel + ".data")
+					self.nextSave = time.time() + 18000
 				if not self.pipeEnd.poll(0.1):
 					time.sleep(0.1)
 					continue
@@ -61,7 +66,7 @@ class MarkovChain:
 							#print (randomWord)
 							outputString += str(randomWord) + " "
 							if str(randomWord)[:-1] in self.stopSigns:
-								cont = randint(0,1)
+								cont = random.randint(0,1)
 								if cont == 0:
 									break
 						else:
