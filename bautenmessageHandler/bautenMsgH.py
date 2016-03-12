@@ -425,7 +425,26 @@ class MsgHandler:
 				retMsg = self.composePrivMsg(self.rpsGameList[0].originChannel, "Halftime reached "+ str(self.rpsGameList[0].playTime / 2) +"s remaining until timeout")
 				self.socket.send(retMsg)
 				self.rpsGameList[0].halfTimeWarningIssued = True
-		time.sleep(0.1)
+		hasremindedOnce = False
+		for reminder in self.reminders:
+			msg = reminder.checkReminder()
+			
+			if msg != "!wait":
+				hasremindedOnce = True
+				retMsg = self.composePrivMsg(botConf.channel, msg)
+				self.socket.send(retMsg)
+		temp = []
+		if hasremindedOnce:
+			print ("what")
+			for reminder in self.reminders:
+				if not reminder.hasReminded:
+					temp.append(reminder)
+			self.reminders = temp
+
+
+
+
+		#time.sleep(0.1)
 	def __countCode(self):
 			path = "."
 			loc = 0
