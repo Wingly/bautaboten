@@ -43,10 +43,12 @@ class MarkovChain:
 
 	def start(self):
 		try:
+			hasChanged = False
 			while 1:
-				if time.time() > self.nextSave:
+				if time.time() > self.nextSave and hasChanged:
 					self.__saveToFile("savedData/markov/" + self.channel + ".data")
 					self.nextSave = time.time() + 18000
+					hasChanged = False
 				if not self.pipeEnd.poll(0.1):
 					time.sleep(0.1)
 					continue
@@ -80,6 +82,7 @@ class MarkovChain:
 					self.__saveToFile("savedData/markov/" + self.channel + ".data")
 					continue
 				#print (input)
+				hasChanged = True
 				data = input.split()
 				stringEnd = len(data)
 				next = 1

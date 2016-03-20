@@ -428,14 +428,12 @@ class MsgHandler:
 		hasremindedOnce = False
 		for reminder in self.reminders:
 			msg = reminder.checkReminder()
-			
 			if msg != "!wait":
 				hasremindedOnce = True
 				retMsg = self.composePrivMsg(botConf.channel, msg)
 				self.socket.send(retMsg)
 		temp = []
 		if hasremindedOnce:
-			print ("what")
 			for reminder in self.reminders:
 				if not reminder.hasReminded:
 					temp.append(reminder)
