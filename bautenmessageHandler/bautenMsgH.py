@@ -21,11 +21,11 @@ class KnowledgeHolder:
 		self.knowledgeContainer = {}
 		self.__readKnowledge()
 	def __saveKnowledge(self, key):
-		saveFile = open('savedData/knowledge.data', 'a')
+		saveFile = open('savedData/knowledge.data', 'a', encoding='utf-8')
 		saveFile.write(key + ":" + self.knowledgeContainer[key] + "\n")
 		saveFile.close()
 	def __readKnowledge(self):
-		loadFile = open('savedData/knowledge.data')
+		loadFile = open('savedData/knowledge.data', 'r' , encoding='utf-8')
 		for line in loadFile:
 			data = line.split(':', 1)
 			self.knowledgeContainer[data[0]] = data[1]
