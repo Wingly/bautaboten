@@ -60,9 +60,10 @@ class MarkovChain:
 						randomWord = input.split()[1]
 					else:
 						randomWord = random.sample(self.wordbase.keys(), 1)[0]
-
+					words = 1
 					outputString += str(randomWord) + " "
-					while randomWord in self.wordbase:
+					while randomWord in self.wordbase and words < 60:
+						words+=1
 						randomWord = random.sample(self.wordbase[randomWord], 1)[0]
 						if randomWord != "":
 							#print (randomWord)
