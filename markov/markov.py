@@ -62,7 +62,10 @@ class MarkovChain:
 						randomWord = random.sample(self.wordbase.keys(), 1)[0]
 					words = 1
 					outputString += str(randomWord) + " "
+					unEndedCitation = False
 					while randomWord in self.wordbase and words < 60:
+						if "\"" in randomWord:
+							unEndedCitation = not unEndedCitation
 						words+=1
 						randomWord = random.sample(self.wordbase[randomWord], 1)[0]
 						if randomWord != "":
@@ -74,6 +77,8 @@ class MarkovChain:
 									break
 						else:
 							break
+					if unEndedCitation:
+						outputString += " \""
 					self.pipeEnd.send(outputString)
 					continue
 				elif input.startswith("!stop"):
