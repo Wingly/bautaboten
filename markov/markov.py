@@ -75,7 +75,7 @@ class MarkovChain:
             use1word = (random.randint(0,100) < self.allow1wordCoef)
 
             if not use1word and len(outputString.split(" ")[-3:-1]) == 2:
-                randomWord = ""
+
                 words+=1
                 newWordCombo = " ".join(outputString.split(" ")[-3:-1])
                 if (newWordCombo not in self.twoWordBase):
@@ -83,6 +83,7 @@ class MarkovChain:
                 totalPossibilites = sum(self.twoWordBase[newWordCombo].values())
                 randWord = random.randint(0, totalPossibilites)
                 current = 0
+                randomWord = ""
                 for word in self.twoWordBase[newWordCombo]:
                     current += self.twoWordBase[newWordCombo][word]
                     if current >= randWord:
