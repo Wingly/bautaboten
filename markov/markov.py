@@ -51,22 +51,48 @@ class MarkovChain:
         words = 1
         outputString += str(randomWord) + " "
         unEndedCitation = False
-        while randomWord in self.wordbase and words < 60:
-            if "\"" in randomWord:
-                unEndedCitation = not unEndedCitation
-            words+=1
-            randomWord = random.sample(self.wordbase[randomWord], 1)[0]
-            if randomWord != "":
-                #print (randomWord)
-                outputString += str(randomWord) + " "
-                if str(randomWord)[:-1] in self.stopSigns:
-                    cont = random.randint(0,1)
-                    if cont == 0:
+        while words < 60:
+            use1word = (random.randint(0,100) < self.allow1wordCoef)
+
+            if not use1word and len(outputString.split(" ")[-3:-1]) == 2:
+                randomWord = ""
+                words+=1
+                newWordCombo = " ".join(outputString.split(" ")[-3:-1])
+                if (newWordCombo not in self.twoWordBase):
+                    continue
+                totalPossibilites = sum(self.twoWordBase[newWordCombo].values())
+                randWord = random.randint(0, totalPossibilites)
+                current = 0
+                for word in self.twoWordBase[newWordCombo]:
+                    current += self.twoWordBase[newWordCombo][word]
+                    if current >= randWord:
+                        randomWord = word
                         break
+                if randomWord != "":
+                    outputString += str(randomWord) + " "
+                    if str(randomWord)[:-1] in self.stopSigns:
+                        cont = random.randint(0,1)
+                        if cont == 0:
+                            break
+                else:
+                    break
+            elif randomWord in self.wordbase: #check for 1 words
+                if "\"" in randomWord:
+                    unEndedCitation = not unEndedCitation
+                words+=1
+                randomWord = random.sample(self.wordbase[randomWord], 1)[0]
+                if randomWord != "":
+                    outputString += str(randomWord) + " "
+                    if str(randomWord)[:-1] in self.stopSigns:
+                        cont = random.randint(0,1)
+                        if cont == 0:
+                            break
+                else:
+                    break
+                if unEndedCitation:
+                    outputString += " \""
             else:
                 break
-        if unEndedCitation:
-            outputString += " \""
         return outputString
 
     def __learnfromMessage(self, message):
