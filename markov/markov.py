@@ -87,7 +87,30 @@ class MarkovChain:
                 else:
                     self.wordbase[word] = [""]
             next += 1
+        #learn double words
+        next = 1
+        for word in data:
+            if next >= wordCount:
+                break
+            newWordCombo = word + " " + data[next]
+            if newWordCombo in self.twoWordBase:
+                if next + 1 < wordCount:
+                    if data[next+1] in self.twoWordBase[newWordCombo]:
+                        self.twoWordBase[newWordCombo][data[next+1]] +=1
+                    else:
+                        self.twoWordBase[newWordCombo].append({data[next+1] : 1})
+                else:
+                    if "" in self.twoWordBase[newWordCombo]:
+                        self.twoWordBase[newWordCombo][""] +=1
+                    else:
+                        self.twoWordBase[newWordCombo].append({"" : 1})
+            else:
+                if next + 1 < wordCount:
+                    self.twoWordBase[newWordCombo] = {data[next+1] : 1}
+                else:
+                    self.twoWordBase[newWordCombo] = {"" : 1}
 
+            next += 1
     def start(self):
         try:
             hasChanged = False
