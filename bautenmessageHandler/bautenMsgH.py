@@ -376,7 +376,10 @@ class MsgHandler:
 					retMsg = self.composePrivMsg(channel, "Bad formatting " + str(e))
 					self.socket.send(retMsg)
 					return
-
+			elif message.startswith("!roll"):
+				retMsg = self.composePrivMsg(channel, str(randint(0,100)))
+				self.socket.send(retMsg)
+				return
 			elif len(message) > 1:
 				retMsg = self.composePrivMsg(channel, "I don't know that command : (")
 				self.socket.send(retMsg)
