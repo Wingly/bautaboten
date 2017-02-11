@@ -41,6 +41,34 @@ class MarkovChain:
                 self.wordbase[data[0]].append("")
         loadFile.close()
 
+    def __generateSentence(self, startWord):
+        outputString =""
+        randomWord = ""
+        if len(startWord.split()) > 1:
+            randomWord = startWord.split()[1]
+        else:
+            randomWord = random.sample(self.wordbase.keys(), 1)[0]
+        words = 1
+        outputString += str(randomWord) + " "
+        unEndedCitation = False
+        while randomWord in self.wordbase and words < 60:
+            if "\"" in randomWord:
+                unEndedCitation = not unEndedCitation
+            words+=1
+            randomWord = random.sample(self.wordbase[randomWord], 1)[0]
+            if randomWord != "":
+                #print (randomWord)
+                outputString += str(randomWord) + " "
+                if str(randomWord)[:-1] in self.stopSigns:
+                    cont = random.randint(0,1)
+                    if cont == 0:
+                        break
+            else:
+                break
+        if unEndedCitation:
+            outputString += " \""
+        return outputString
+
     def start(self):
         try:
             hasChanged = False
@@ -54,33 +82,8 @@ class MarkovChain:
                     continue
                 input = self.pipeEnd.recv()
                 if input.startswith("!speak"):
-                    outputString =""
-                    randomWord = ""
-                    if len(input.split()) > 1:
-                        randomWord = input.split()[1]
-                    else:
-                        randomWord = random.sample(self.wordbase.keys(), 1)[0]
-                    words = 1
-                    outputString += str(randomWord) + " "
-                    unEndedCitation = False
-                    while randomWord in self.wordbase and words < 60:
-                        if "\"" in randomWord:
-                            unEndedCitation = not unEndedCitation
-                        words+=1
-                        randomWord = random.sample(self.wordbase[randomWord], 1)[0]
-                        if randomWord != "":
-                            #print (randomWord)
-                            outputString += str(randomWord) + " "
-                            if str(randomWord)[:-1] in self.stopSigns:
-                                cont = random.randint(0,1)
-                                if cont == 0:
-                                    break
-                        else:
-                            break
-                    if unEndedCitation:
-                        outputString += " \""
-
-                    self.pipeEnd.send(outputString)
+                    retMSG = self.__generateSentence(input)
+                    self.pipeEnd.send(retMSG)
                     continue
                 elif input.startswith("!stop"):
                     return "Stopping"
