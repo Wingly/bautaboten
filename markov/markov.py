@@ -69,6 +69,25 @@ class MarkovChain:
             outputString += " \""
         return outputString
 
+    def __learnfromMessage(self, message):
+        data = message.split()
+        wordCount = len(data)
+        next = 1
+        #learn single words
+        for word in data:
+            #print (word)
+            if word in self.wordbase:
+                if next < wordCount:
+                    self.wordbase[word].append(data[next])
+                else:
+                    self.wordbase[word].append("")
+            else:
+                if next < wordCount:
+                    self.wordbase[word] = [data[next]]
+                else:
+                    self.wordbase[word] = [""]
+            next += 1
+
     def start(self):
         try:
             hasChanged = False
@@ -89,25 +108,11 @@ class MarkovChain:
                     return "Stopping"
                 elif input.startswith("!markovsave"):
                     print ("saving to file")
-                    self.__saveToFile("savedData/markov/" + self.channel + ".data")
+                    self.__saveToFile("savedData/markov/" + self.channel)
                     continue
                 #print (input)
                 hasChanged = True
-                data = input.split()
-                stringEnd = len(data)
-                next = 1
-                for word in data:
-                    #print (word)
-                    if word in self.wordbase:
-                        if next < stringEnd:
-                            self.wordbase[word].append(data[next])
-                        else:
-                            self.wordbase[word].append("")
-                    else:
-                        if next < stringEnd:
-                            self.wordbase[word] = [data[next]]
-                        else:
-                            self.wordbase[word] = [""]
-                    next += 1
+                self.__learnfromMessage(input)
+
         except Exception as e:
             return "!error " + str(e)       
