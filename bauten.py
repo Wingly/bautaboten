@@ -3,7 +3,6 @@ import time
 import markov.markov as markov
 import bautenmessageHandler.bautenMsgH as msgHandler
 import bautenmessageHandler.bautenConf as botConf
-import bautenmessageHandler.bautenQuizH as quizHandler
 
 from multiprocessing import Process, Pipe
 import importlib
@@ -43,9 +42,7 @@ irc.send(bytes("JOIN " + botConf.channel + botConf.stopsign, 'utf-8'))
 
 admin =[]
 allowCommands = True
-quizMode = False
 handler = msgHandler.MsgHandler(irc) #Standard handler
-quizModule = None #Use in quiz mode
 channel_conn, markov_conn = Pipe()
 markov_Process = Process(target=markov.start, args=(markov_conn, botConf.channel,))
 markov_Process.start()
@@ -78,7 +75,6 @@ while 1:
 			if (sender in botConf.superAdmin or (sender in admin and not allowCommands)) and message == "!reload":
 				irc.send(bytes("PRIVMSG" +" " + target + " :Attempting reload." + botConf.stopsign, 'utf-8'))
 				try:
-					quizMode = False
 					try:
 						channel_conn.send("!stop")
 						markov_Process.join()
@@ -89,34 +85,21 @@ while 1:
 						print ("Error when stopping markov" + str(e))
 					if sys.version_info >= (3,4):
 						msgHandler = importlib.reload(msgHandler)
-						quizHandler = importlib.reload(quizHandler)
 						markov = importlib.reload(markov)
 					else:
 						msgHandler = imp.reload(msgHandler)
-						quizHandler = imp.reload(quizHandler)
-						markov = imp.reload(markov)						
+						markov = imp.reload(markov)                     
 					handler = msgHandler.MsgHandler(irc)
 					channel_conn, markov_conn = Pipe() 
 					markov_Process = Process(target=markov.start, args=(markov_conn, botConf.channel,))
-					markov_Process.start()	
+					markov_Process.start()  
 
-					quizModule = None
 					irc.send(bytes("PRIVMSG" +" " + target + " :Reload complete." + botConf.stopsign, 'utf-8'))
 					allowCommands = True
 				except Exception as e:
 					print (e)
 					allowCommands = False #Not using handler here since im not sure it's not broken after the reload attempt
-					irc.send(bytes("PRIVMSG" +" " + "#teamkazzak" + " :Error reloading." + botConf.stopsign, 'utf-8'))	
-				continue
-			elif (sender in botConf.superAdmin or sender in admin) and message.lower() == "!quiz":
-				if quizMode == False:
-					quizMode = True
-					quizModule = quizHandler.QuizModule(target,irc)
-				continue
-			elif (sender in botConf.superAdmin  or sender in admin) and message == "!abort":
-				if quizMode == True:
-					quizMode = False
-					quizModule = None
+					irc.send(bytes("PRIVMSG" +" " + "#teamkazzak" + " :Error reloading." + botConf.stopsign, 'utf-8'))  
 				continue
 			elif sender in botConf.superAdmin and message.startswith("!addAdmin"):
 				splitted = message.split()
@@ -142,7 +125,7 @@ while 1:
 				print ("attempting to quit")
 				irc.send(bytes("PRIVMSG" +" " + target + " : Okay, goodbye :(" + botConf.stopsign, 'utf-8'))
 				irc.send(bytes("QUIT :Bye bye", 'utf-8'))
-				sys.exit()			
+				sys.exit()          
 			elif message.startswith("!speak"):
 				if allowCommands:
 					channel_conn.send(message)
@@ -158,10 +141,7 @@ while 1:
 				continue
 			if allowCommands:
 				try:
-					if quizMode == False:
-						handler.handleMessage(sender, message, target)
-					else:
-						quizModule.handleMessage(sender, message)
+					handler.handleMessage(sender, message, target)
 				except Exception as e:
 					print (e)
 					allowCommands = False
@@ -170,14 +150,7 @@ while 1:
 			handler.greetVisitor(target, sender)
 	if allowCommands:
 		try:
-			if quizMode == True:
-				if quizModule.isFinished() == False:
-					quizModule.update()
-				else:
-					quizMode = False
-					quizModule = None		
-			else:
-				handler.update()
+			handler.update()
 		except Exception as e:
 			print (e)
 			allowCommands = False
