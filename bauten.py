@@ -49,105 +49,111 @@ markov_Process.start()
 while 1:
     ready = select.select([irc], [irc], [irc], 0.1)
     if ready[0]:
-        text = irc.recv(2040)
-        text = text.decode('utf-8')
+        bufferData = irc.recv(2040).split(b'\r\n')
+        for text in bufferData:
+            text = text.decode('utf-8')
+            if text.find('PING') != -1:
+                    print ("ping ponging")
+                    irc.send(bytes('PONG ' + text.split()[1] + '\r\n', 'utf-8'))
+                    continue
+            removeOperator = re.compile(r'[@\+%]')
+            data = text.split()
+            sender = None
+            msgType = None
+            target = None
+            try:
+                sender = removeOperator.sub('',data[0][1:].split('!')[0])
+                msgType = data[1]
+                target = data[2]
+            except Exception as e:
+                continue
 
-        if text.find('PING') != -1:
-                print ("ping ponging")
-                irc.send(bytes('PONG ' + text.split()[1] + '\r\n', 'utf-8'))
-                continue
-        removeOperator = re.compile(r'[@\+%]')
-        data = text.split()
-        sender = removeOperator.sub('',data[0][1:].split('!')[0])
-        msgType = data[1]
-        target = data[2]
-
-        if target == botConf.nick:
-            target = sender
-        if msgType == "PRIVMSG":
-            message =data[3]
-            for i in range(4,len(data)):
-                message += " "+data[i]
-            message = message[1:]
-        if msgType == "PRIVMSG" and sender != botConf.nick:
-            if not message.startswith("!"):
-                channel_conn.send(message)
-            if (sender in botConf.superAdmin or (sender in admin and not allowCommands)) and message == "!reload":
-                irc.send(bytes("PRIVMSG" +" " + target + " :Attempting reload." + botConf.stopsign, 'utf-8'))
-                try:
-                    try:
-                        channel_conn.send("!stop")
-                        markov_Process.join()
-                        markov_Process = None
-                        channel_conn = None
-                        markov_conn = None
-                    except Exception as e:
-                        print ("Error when stopping markov" + str(e))
-                    if sys.version_info >= (3,4):
-                        msgHandler = importlib.reload(msgHandler)
-                        markov = importlib.reload(markov)
-                    else:
-                        msgHandler = imp.reload(msgHandler)
-                        markov = imp.reload(markov)                     
-                    handler = msgHandler.MsgHandler(irc)
-                    channel_conn, markov_conn = Pipe() 
-                    markov_Process = Process(target=markov.start, args=(markov_conn, botConf.channel,))
-                    markov_Process.start()  
-
-                    irc.send(bytes("PRIVMSG" +" " + target + " :Reload complete." + botConf.stopsign, 'utf-8'))
-                    allowCommands = True
-                except Exception as e:
-                    print (e)
-                    allowCommands = False #Not using handler here since im not sure it's not broken after the reload attempt
-                    irc.send(bytes("PRIVMSG" +" " + "#teamkazzak" + " :Error reloading." + botConf.stopsign, 'utf-8'))  
-                continue
-            elif sender in botConf.superAdmin and message.startswith("!addAdmin"):
-                splitted = message.split()
-                if len(splitted) > 1:
-                    names = handler.getNames(target)
-                    for person in (set(splitted) & set(names)):
-                        admin.append(person)
-                if len(admin) > 0:
-                    adminlist = ''.join(str(x) for x in admin)+ " "
-                    print ("current admins: " + adminlist)
-                continue
-            elif sender in botConf.superAdmin and message.startswith("!delAdmin"):
-                splitted = message.split()
-                if len(splitted) > 1:
-                    names = handler.getNames(target)
-                    if splitted[1] in names:
-                        admin.remove(splitted[1])
-                if len(admin) > 0:
-                    adminlist = ''.join(str(x) for x in admin)  + " "
-                    print ("current admins: " + adminlist)
-                continue
-            elif sender in botConf.superAdmin and message.startswith("!quit"):
-                print ("attempting to quit")
-                irc.send(bytes("PRIVMSG" +" " + target + " : Okay, goodbye :(" + botConf.stopsign, 'utf-8'))
-                irc.send(bytes("QUIT :Bye bye", 'utf-8'))
-                sys.exit()          
-            elif message.startswith("!speak"):
-                if allowCommands:
+            if target == botConf.nick:
+                target = sender
+            if msgType == "PRIVMSG":
+                message =data[3]
+                for i in range(4,len(data)):
+                    message += " "+data[i]
+                message = message[1:]
+            if msgType == "PRIVMSG" and sender != botConf.nick:
+                if not message.startswith("!"):
                     channel_conn.send(message)
-                    sentence = channel_conn.recv()
-                    if sentence.startswith("!error"):
-                        allowCommands = False
-                    retMsg = handler.composePrivMsg(target, sentence)
+                if (sender in botConf.superAdmin or (sender in admin and not allowCommands)) and message == "!reload":
+                    irc.send(bytes("PRIVMSG" +" " + target + " :Attempting reload." + botConf.stopsign, 'utf-8'))
+                    try:
+                        try:
+                            channel_conn.send("!stop")
+                            markov_Process.join()
+                            markov_Process = None
+                            channel_conn = None
+                            markov_conn = None
+                        except Exception as e:
+                            print ("Error when stopping markov" + str(e))
+                        if sys.version_info >= (3,4):
+                            msgHandler = importlib.reload(msgHandler)
+                            markov = importlib.reload(markov)
+                        else:
+                            msgHandler = imp.reload(msgHandler)
+                            markov = imp.reload(markov)
+                        handler = msgHandler.MsgHandler(irc)
+                        channel_conn, markov_conn = Pipe()
+                        markov_Process = Process(target=markov.start, args=(markov_conn, botConf.channel,))
+                        markov_Process.start()
 
-                    irc.send(retMsg)
-                continue
-            elif message.startswith("!markovsave") and sender in botConf.superAdmin:
-                channel_conn.send(message)
-                continue
-            if allowCommands:
-                try:
-                    handler.handleMessage(sender, message, target)
-                except Exception as e:
-                    print (e)
-                    allowCommands = False
-                    irc.send(bytes("PRIVMSG" +" " + target + " :Error in msgH " + str(e) + botConf.stopsign, 'utf-8'))
-        elif msgType == "JOIN":
-            handler.greetVisitor(target, sender)
+                        irc.send(bytes("PRIVMSG" +" " + target + " :Reload complete." + botConf.stopsign, 'utf-8'))
+                        allowCommands = True
+                    except Exception as e:
+                        print (e)
+                        allowCommands = False #Not using handler here since im not sure it's not broken after the reload attempt
+                        irc.send(bytes("PRIVMSG" +" " + "#teamkazzak" + " :Error reloading." + botConf.stopsign, 'utf-8'))  
+                    continue
+                elif sender in botConf.superAdmin and message.startswith("!addAdmin"):
+                    splitted = message.split()
+                    if len(splitted) > 1:
+                        names = handler.getNames(target)
+                        for person in (set(splitted) & set(names)):
+                            admin.append(person)
+                    if len(admin) > 0:
+                        adminlist = ''.join(str(x) for x in admin)+ " "
+                        print ("current admins: " + adminlist)
+                    continue
+                elif sender in botConf.superAdmin and message.startswith("!delAdmin"):
+                    splitted = message.split()
+                    if len(splitted) > 1:
+                        names = handler.getNames(target)
+                        if splitted[1] in names:
+                            admin.remove(splitted[1])
+                    if len(admin) > 0:
+                        adminlist = ''.join(str(x) for x in admin)  + " "
+                        print ("current admins: " + adminlist)
+                    continue
+                elif sender in botConf.superAdmin and message.startswith("!quit"):
+                    print ("attempting to quit")
+                    irc.send(bytes("PRIVMSG" +" " + target + " : Okay, goodbye :(" + botConf.stopsign, 'utf-8'))
+                    irc.send(bytes("QUIT :Bye bye", 'utf-8'))
+                    sys.exit()
+                elif message.startswith("!speak"):
+                    if allowCommands:
+                        channel_conn.send(message)
+                        sentence = channel_conn.recv()
+                        if sentence.startswith("!error"):
+                            allowCommands = False
+                        retMsg = handler.composePrivMsg(target, sentence)
+
+                        irc.send(retMsg)
+                    continue
+                elif message.startswith("!markovsave") and sender in botConf.superAdmin:
+                    channel_conn.send(message)
+                    continue
+                if allowCommands:
+                    try:
+                        handler.handleMessage(sender, message, target)
+                    except Exception as e:
+                        print (e)
+                        allowCommands = False
+                        irc.send(bytes("PRIVMSG" +" " + target + " :Error in msgH " + str(e) + botConf.stopsign, 'utf-8'))
+            elif msgType == "JOIN":
+                handler.greetVisitor(target, sender)
     if allowCommands:
         try:
             handler.update()
