@@ -8,7 +8,7 @@ class Reminder:
 		#0 will be the command
 		#1 will be the date
 		#2 will be the time
-		dt = datetime.strptime(splitData[1] + " " + splitData[2], "%d-%m-%y %H:%M")
+		dt = datetime.strptime(splitData[1] + " " + splitData[2], "%y-%m-%d %H:%M")
 		self.remindString = sender +": " + splitData[3]
 		self.remindDate = dt
 
