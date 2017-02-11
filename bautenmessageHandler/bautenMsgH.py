@@ -151,7 +151,6 @@ class MsgHandler:
         self.rpsScore = {}
         self.rpsLosses = {}
         self.rpsTies = {}
-        self.loc = self.__countCode()
         self.botrpsCD = 60
         self.lastBotMatch = 0
         self.knowledgeHolder = KnowledgeHolder()
@@ -304,7 +303,7 @@ class MsgHandler:
                 self.socket.send(retMsg)
                 return
             elif message.startswith("!about"):
-                retMsg = self.composePrivMsg(channel, "Version: ~#500. Written in python with around(+-50 because i can't count properly :( ) " + str(self.loc) + " lines of code")
+                retMsg = self.composePrivMsg(channel, "https://github.com/Wingly/bautaboten")
                 self.socket.send(retMsg)
                 return
             elif message.startswith("!rovare"):
@@ -442,22 +441,6 @@ class MsgHandler:
                     temp.append(reminder)
             self.reminders = temp
 
-
-
-
-        #time.sleep(0.1)
-    def __countCode(self):
-            path = "."
-            loc = 0
-            for root, dir, files in os.walk(path):
-                print (root)
-                for file in files:
-                    if file.endswith(".py"):
-                        with open(os.path.join(root ,file)) as f:
-                            for i, l in enumerate(f):
-                                pass
-                        loc += i
-            return loc
     def __checkForURL(self, checkString):
         for x in checkString.split():
             if urlparse(x)[1] != "":
